@@ -116,28 +116,27 @@ class ProviderPreferenceSafetyTests(unittest.TestCase):
             compact_handler,
         )
 
-    def test_uploader_test_passes_its_abort_callback_to_the_process_wait(self):
+    def test_native_uploads_do_not_use_a_subprocess(self):
         providers = (
             ROOT / "foo_discord_rich" / "ui" / "ui_pref_tab_providers.cpp"
         ).read_text(encoding="utf-8")
         uploader = (
-            ROOT / "foo_discord_rich" / "artwork" / "uploader.cpp"
-        ).read_text(encoding="utf-8")
-        subprocess = (
-            ROOT / "foo_discord_rich" / "utils" / "subprocess_executor.cpp"
+            ROOT / "foo_discord_rich" / "artwork" / "local_artwork_uploader.cpp"
         ).read_text(encoding="utf-8")
 
-        self.assertIn("UploadArt( handle, command, aborter )", providers)
-        self.assertIn("WaitUntilCompleted( kMaxWaitTime, aborter )", uploader)
-        self.assertIn("aborter.get_handle()", subprocess)
-        self.assertIn("TerminateJobObject", subprocess)
+        self.assertIn("UploadLocalArtwork( handle, host, imgurClientId, aborter )", providers)
+        self.assertIn("https://catbox.moe/user/api.php", uploader)
+        self.assertIn("https://api.imgur.com/3/image", uploader)
+        self.assertIn("CreateAbortProgress( aborter )", uploader)
+        self.assertNotIn("SubprocessExecutor", uploader)
 
-    def test_uploader_secret_warning_is_documented(self):
+    def test_native_upload_requirements_are_documented(self):
         documentation = (ROOT / "docs" / "CONFIGURATION.md").read_text(
             encoding="utf-8"
         )
-        self.assertIn("Never put an API key, access", documentation)
-        self.assertIn("visible in the spawned process's", documentation)
+        self.assertIn("Catbox", documentation)
+        self.assertIn("Imgur", documentation)
+        self.assertIn("Client ID", documentation)
 
 
 if __name__ == "__main__":

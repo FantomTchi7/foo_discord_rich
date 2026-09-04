@@ -8,7 +8,7 @@
 namespace drp::artwork
 {
 
-inline constexpr int kArtworkCacheFormatVersion = 4;
+inline constexpr int kArtworkCacheFormatVersion = 5;
 
 inline bool IsCanonicalMbid( std::string_view value )
 {
@@ -65,14 +65,24 @@ inline std::optional<std::string> BuildMusicBrainzCacheKey(
     return "mb:metadata:" + std::to_string( artist.size() ) + ":" + artist + ":" + std::to_string( album.size() ) + ":" + album;
 }
 
-inline std::optional<std::string> BuildUploaderCacheKey( const std::string& artPinId )
+inline std::optional<std::string> BuildLocalArtworkCacheKey( std::string_view provider, const std::string& artPinId )
 {
-    if ( artPinId.empty() )
+    if ( provider.empty() || artPinId.empty() )
     {
         return std::nullopt;
     }
 
-    return "upload:" + artPinId;
+    return std::string{ provider } + ":" + artPinId;
+}
+
+inline std::optional<std::string> BuildCatboxCacheKey( const std::string& artPinId )
+{
+    return BuildLocalArtworkCacheKey( "catbox", artPinId );
+}
+
+inline std::optional<std::string> BuildImgurCacheKey( const std::string& artPinId )
+{
+    return BuildLocalArtworkCacheKey( "imgur", artPinId );
 }
 
 inline std::optional<std::string> BuildTheAudioDbCacheKey( const std::string& artist, const std::string& album )
@@ -89,7 +99,8 @@ inline bool IsQualifiedCacheKey( std::string_view key )
 {
     constexpr std::string_view releasePrefix = "mb:release:";
     constexpr std::string_view metadataPrefix = "mb:metadata:";
-    constexpr std::string_view uploaderPrefix = "upload:";
+    constexpr std::string_view catboxPrefix = "catbox:";
+    constexpr std::string_view imgurPrefix = "imgur:";
     constexpr std::string_view theAudioDbPrefix = "tadb:metadata:";
 
     if ( key.starts_with( releasePrefix ) )
@@ -98,7 +109,8 @@ inline bool IsQualifiedCacheKey( std::string_view key )
     }
 
     return ( key.starts_with( metadataPrefix ) && key.size() > metadataPrefix.size() )
-           || ( key.starts_with( uploaderPrefix ) && key.size() > uploaderPrefix.size() )
+           || ( key.starts_with( catboxPrefix ) && key.size() > catboxPrefix.size() )
+           || ( key.starts_with( imgurPrefix ) && key.size() > imgurPrefix.size() )
            || ( key.starts_with( theAudioDbPrefix ) && key.size() > theAudioDbPrefix.size() );
 }
 

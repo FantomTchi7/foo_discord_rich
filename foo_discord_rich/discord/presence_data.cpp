@@ -74,17 +74,20 @@ std::optional<drp::ArtworkFetcher::MusicBrainzFetchRequest> CreateMusicBrainzReq
         .userReleaseMbidOpt = userReleaseMbid.empty() ? std::optional<qwr::u8string>{} : userReleaseMbid };
 }
 
-std::optional<drp::ArtworkFetcher::UploadRequest> CreateUploadRequest( const metadb_handle_ptr& handle )
+std::optional<drp::ArtworkFetcher::LocalArtworkUploadRequest> CreateLocalArtworkUploadRequest(
+    const metadb_handle_ptr& handle,
+    drp::artwork::LocalArtworkHost host )
 {
     if ( handle.is_empty() )
     {
         return std::nullopt;
     }
 
-    return drp::ArtworkFetcher::UploadRequest{
-        .artPinId = EvaluateQueryForPlayingTrack( handle, config::artUploadPinQuery ),
+    return drp::ArtworkFetcher::LocalArtworkUploadRequest{
+        .artPinId = EvaluateQueryForPlayingTrack( handle, config::localArtworkPinQuery ),
         .handle = handle,
-        .uploadCommand = config::artUploadCmd };
+        .host = host,
+        .imgurClientId = config::imgurClientId };
 }
 
 std::optional<drp::ArtworkFetcher::TheAudioDbFetchRequest> CreateTheAudioDbRequest( const metadb_handle_ptr& handle )
@@ -137,9 +140,18 @@ std::optional<qwr::u8string> ResolveTrackArtUrl( const drp::internal::PresenceDa
     }
 
     std::vector<drp::ArtworkFetcher::FetchRequest> requests;
-    if ( config::enableArtUpload )
+    if ( config::enableCatboxUpload )
     {
-        const auto requestOpt = CreateUploadRequest( pd.metadb );
+        const auto requestOpt = CreateLocalArtworkUploadRequest( pd.metadb, drp::artwork::LocalArtworkHost::Catbox );
+        if ( requestOpt )
+        {
+            requests.emplace_back( *requestOpt );
+        }
+    }
+
+    if ( config::enableImgurUpload )
+    {
+        const auto requestOpt = CreateLocalArtworkUploadRequest( pd.metadb, drp::artwork::LocalArtworkHost::Imgur );
         if ( requestOpt )
         {
             requests.emplace_back( *requestOpt );
@@ -344,7 +356,8 @@ void PresenceModifier::UpdateImage()
     auto& pd = presenceData_;
 
     const auto policy = artwork::NormaliseDisplayPolicy( static_cast<artwork::DisplayPolicy>( config::artworkDisplayPolicy ) );
-    const bool hasArtworkSource = config::enableArtUpload || config::enableAlbumArtFetch || config::enableTheAudioDbFetch;
+    const bool hasArtworkSource = config::enableCatboxUpload || config::enableImgurUpload
+                                  || config::enableAlbumArtFetch || config::enableTheAudioDbFetch;
     const bool shouldResolveArtwork = artwork::ShouldResolveArtwork( policy ) && pd.metadb.is_valid() && hasArtworkSource;
     if ( shouldResolveArtwork )
     {

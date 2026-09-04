@@ -174,9 +174,10 @@ results are truncated by the component.
 The **Providers** tab controls artwork sources. Enabled providers are tried in
 this fixed order:
 
-1. Local or embedded front-cover artwork through the configured uploader.
-2. MusicBrainz and the Cover Art Archive.
-3. TheAudioDB.
+1. Local or embedded front-cover artwork uploaded to Catbox.
+2. Local or embedded front-cover artwork uploaded to Imgur.
+3. MusicBrainz and the Cover Art Archive.
+4. TheAudioDB.
 
 A clean no-match result advances to the next provider. A temporary provider
 failure also permits a fallback and is held in memory briefly to avoid a tight
@@ -196,9 +197,9 @@ The Main tab also provides an **Artwork behaviour** selector:
 
 The artwork status line reports whether the applied configuration is idle,
 fetching, resolved, using a cached no-match result, or encountered a
-fetch/uploader failure. Unsaved artwork changes are labelled as pending rather
+fetch/upload failure. Unsaved artwork changes are labelled as pending rather
 than being mixed with live status. Resolved status identifies the provider;
-URLs, keys, and uploader output are not shown.
+URLs and credentials are not shown.
 
 ### MusicBrainz / Cover Art Archive
 
@@ -246,23 +247,17 @@ embedded in the current audio file. Discord cannot read a path on this computer
 and cannot receive those image bytes directly through Rich Presence, so the
 component needs a public HTTPS image URL.
 
-Enable **Upload local/embedded artwork first** and configure a trusted uploader executable
-which:
+- **Catbox** supports anonymous uploads and needs no configuration.
+- **Imgur** uses anonymous image uploads but requires a Client ID from an Imgur
+  application you register. A Client ID identifies the application and is not
+  an account access token; do not enter a client secret, password, or OAuth
+  token in this field.
 
-1. reads the artwork path from standard input;
-2. uploads the image to a service you control or trust; and
-3. writes one public HTTPS image URL to standard output.
-
-Embedded artwork is copied to a unique temporary file for the command and
-removed afterwards. The cache pin query identifies when an upload can be
-reused; its default is `%artist%|%album%`. Use **Test** against the current
-track before applying the setting. Upload commands are executable programs and
-must only be configured from a trusted source. Never put an API key, access
-token, password, or other secret in the upload command: the command is stored
-as plaintext configuration and may also be visible in the spawned process's
-command line. If the uploader needs credentials, have the trusted uploader read
-them from its own protected credential store or other access-controlled
-configuration instead.
+Enable either host on the **Providers** tab and use its **Test** action against
+the current track before applying the setting. The shared cache pin query
+identifies when an upload can be reused; its default is `%artist%|%album%`.
+Embedded artwork is copied to a unique temporary file and removed after the
+native upload completes or is cancelled.
 
 ### Provider requirements and exclusions
 
@@ -284,10 +279,10 @@ paid API use. Artwork remains subject to the rights of its respective owner.
 
 ### Artwork cache
 
-Artwork is cached separately for the uploader, MusicBrainz, and TheAudioDB so
+Artwork is cached separately for Catbox, Imgur, MusicBrainz, and TheAudioDB so
 one provider's result cannot suppress another. Successful results are refreshed
 periodically, while clean no-match results expire sooner. Cache formats older
-than version 4 are deliberately ignored because their provider and release
+than version 5 are deliberately ignored because their provider and release
 identity is ambiguous; the component rebuilds them as tracks are played.
 
 Use **Advanced > Artwork cache > Reload from disk** to reload the current cache file, or use
@@ -305,7 +300,8 @@ being shown as successful operations.
 - Bottom: `[$if2(%album%,Unknown album)]`
 - Enable MusicBrainz / Cover Art Archive on the Providers tab.
 - Optionally enable TheAudioDB as a fallback.
-- Leave local artwork disabled unless you have configured a trusted uploader.
+- Enable Catbox for zero-configuration local artwork uploads, or configure an
+  Imgur Client ID before enabling Imgur.
 
 ### Album Art First Run
 
@@ -374,7 +370,8 @@ activity Discord chooses to display.
 - Check the artwork status shown on the Main tab.
 - Select `Prefer artwork` or `Album artwork only`; `Use configured large image
   only` intentionally skips artwork requests.
-- Confirm uploader mode is disabled unless you configured an upload command.
+- Confirm Catbox or Imgur is enabled for local artwork uploads. Imgur also
+  requires a Client ID.
 - Confirm the track has artist and album tags.
 - Try a release with a MusicBrainz album ID tag.
 - Use `Advanced > Artwork cache > Open folder...` to inspect cached

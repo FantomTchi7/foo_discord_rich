@@ -4,7 +4,7 @@
 
 #include <artwork/musicbrainz_fetcher.h>
 #include <artwork/theaudiodb_fetcher.h>
-#include <artwork/uploader.h>
+#include <artwork/local_artwork_uploader.h>
 #include <discord/discord_integration.h>
 
 #include <component_paths.h>
@@ -46,8 +46,10 @@ std::optional<qwr::u8string> GenerateCacheKey( const drp::ArtworkFetcher::FetchR
             []( const drp::ArtworkFetcher::MusicBrainzFetchRequest& req ) {
                 return drp::artwork::BuildMusicBrainzCacheKey( req.artist, req.album, req.userReleaseMbidOpt );
             },
-            []( const drp::ArtworkFetcher::UploadRequest& req ) {
-                return drp::artwork::BuildUploaderCacheKey( req.artPinId );
+            []( const drp::ArtworkFetcher::LocalArtworkUploadRequest& req ) {
+                return req.host == drp::artwork::LocalArtworkHost::Catbox
+                           ? drp::artwork::BuildCatboxCacheKey( req.artPinId )
+                           : drp::artwork::BuildImgurCacheKey( req.artPinId );
             },
             []( const drp::ArtworkFetcher::TheAudioDbFetchRequest& req ) {
                 return drp::artwork::BuildTheAudioDbCacheKey( req.artist, req.album );
@@ -79,8 +81,8 @@ bool IsRequestExecutable( const drp::ArtworkFetcher::FetchRequest& request )
             []( const drp::ArtworkFetcher::MusicBrainzFetchRequest& req ) {
                 return true;
             },
-            []( const drp::ArtworkFetcher::UploadRequest& req ) {
-                return !req.uploadCommand.empty();
+            []( const drp::ArtworkFetcher::LocalArtworkUploadRequest& req ) {
+                return req.host == drp::artwork::LocalArtworkHost::Catbox || !req.imgurClientId.empty();
             },
             []( const drp::ArtworkFetcher::TheAudioDbFetchRequest& req ) {
                 return drp::artwork::IsEligibleTheAudioDbSupporterKey( req.apiKey );
@@ -95,8 +97,8 @@ qwr::u8string_view ProviderName( const drp::ArtworkFetcher::FetchRequest& reques
             []( const drp::ArtworkFetcher::MusicBrainzFetchRequest& ) -> qwr::u8string_view {
                 return "MusicBrainz / Cover Art Archive";
             },
-            []( const drp::ArtworkFetcher::UploadRequest& ) -> qwr::u8string_view {
-                return "local artwork uploader";
+            []( const drp::ArtworkFetcher::LocalArtworkUploadRequest& req ) -> qwr::u8string_view {
+                return req.host == drp::artwork::LocalArtworkHost::Catbox ? "Catbox" : "Imgur";
             },
             []( const drp::ArtworkFetcher::TheAudioDbFetchRequest& ) -> qwr::u8string_view {
                 return "TheAudioDB";
@@ -106,9 +108,9 @@ qwr::u8string_view ProviderName( const drp::ArtworkFetcher::FetchRequest& reques
 
 qwr::u8string FetchingMessage( const drp::ArtworkFetcher::FetchRequest& request )
 {
-    if ( std::holds_alternative<drp::ArtworkFetcher::UploadRequest>( request ) )
+    if ( std::holds_alternative<drp::ArtworkFetcher::LocalArtworkUploadRequest>( request ) )
     {
-        return "Running the configured local artwork uploader...";
+        return fmt::format( "Uploading local artwork to {}...", ProviderName( request ) );
     }
     return fmt::format( "Fetching album artwork from {}...", ProviderName( request ) );
 }
@@ -512,6 +514,7 @@ void ArtworkFetcher::ClearCache()
     {
         fs::remove( drp::path::ImageDir() / "art_urls.v2.0.1.json" );
         fs::remove( drp::path::ImageDir() / "art_urls.v3.json" );
+        fs::remove( drp::path::ImageDir() / "art_urls.v4.json" );
         fs::remove( GetCacheFilePath() );
     }
     catch ( const fs::filesystem_error& e )
@@ -533,7 +536,9 @@ void ArtworkFetcher::ClearCache()
 
 void ArtworkFetcher::InvalidateProviderCache( ProviderCache provider )
 {
-    const qwr::u8string_view prefix = provider == ProviderCache::Uploader ? "upload:" : "tadb:";
+    const qwr::u8string_view prefix = provider == ProviderCache::Catbox ? "catbox:"
+                                         : provider == ProviderCache::Imgur ? "imgur:"
+                                                                           : "tadb:";
     bool removedCacheEntry = false;
     {
         std::unique_lock lock( mutex_ );
@@ -556,7 +561,7 @@ void ArtworkFetcher::InvalidateProviderCache( ProviderCache provider )
 
 std::filesystem::path ArtworkFetcher::GetCacheFilePath()
 {
-    static const auto cachePath = drp::path::ImageDir() / "art_urls.v4.json";
+    static const auto cachePath = drp::path::ImageDir() / "art_urls.v5.json";
     return cachePath;
 }
 
@@ -760,16 +765,21 @@ ArtworkFetcher::FetchOutcome ArtworkFetcher::ProcessFetchRequest( const MusicBra
     }
 }
 
-ArtworkFetcher::FetchOutcome ArtworkFetcher::ProcessFetchRequest( const UploadRequest& request )
+ArtworkFetcher::FetchOutcome ArtworkFetcher::ProcessFetchRequest( const LocalArtworkUploadRequest& request )
 {
     try
     {
-        return { UploadArt( request.handle, request.uploadCommand ), true };
+        return { artwork::UploadLocalArtwork(
+                     request.handle,
+                     request.host,
+                     request.imgurClientId,
+                     qwr::GlobalAbortCallback::GetInstance() ),
+            true };
     }
     catch ( const qwr::QwrException& e )
     {
         LogError( e.what() );
-        return { {}, false, "Artwork uploader failed; see the foobar2000 console." };
+        return { {}, false, "Local artwork upload failed; see the foobar2000 console." };
     }
     catch ( const exception_aborted& /*e*/ )
     {
@@ -777,13 +787,13 @@ ArtworkFetcher::FetchOutcome ArtworkFetcher::ProcessFetchRequest( const UploadRe
     }
     catch ( const pfc::exception& e )
     {
-        LogError( fmt::format( "Art upload failed: {}", e.what() ) );
-        return { {}, false, "Artwork uploader failed; see the foobar2000 console." };
+        LogError( fmt::format( "Local artwork upload failed: {}", e.what() ) );
+        return { {}, false, "Local artwork upload failed; see the foobar2000 console." };
     }
     catch ( ... )
     {
-        LogError( "Unexpected art upload failure" );
-        return { {}, false, "Artwork uploader failed; see the foobar2000 console." };
+        LogError( "Unexpected local artwork upload failure" );
+        return { {}, false, "Local artwork upload failed; see the foobar2000 console." };
     }
 }
 

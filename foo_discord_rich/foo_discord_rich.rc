@@ -147,16 +147,18 @@ BEGIN
     PUSHBUTTON      "Clear",IDC_BUTTON_CLEAR_THEAUDIODB_KEY,200,96,34,14
     PUSHBUTTON      "Get key...",IDC_BUTTON_THEAUDIODB_HELP,239,96,47,14
     GROUPBOX        "Local and embedded artwork",IDC_STATIC,6,126,314,101
-    CONTROL         "Upload local/embedded artwork first",IDC_CHECK_UPLOAD_ART,
+    CONTROL         "Upload to Catbox (anonymous)",IDC_CHECK_UPLOAD_CATBOX,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,139,143,10
-    LTEXT           "Discord cannot read files on this PC. A trusted uploader must return a public HTTPS image URL.",IDC_STATIC,15,153,293,18
-    LTEXT           "Upload command",IDC_STATIC,15,175,55,8
-    EDITTEXT        IDC_EDIT_UPLOAD_COMMAND,74,172,186,14,ES_AUTOHSCROLL
-    PUSHBUTTON      "Test",IDC_BUTTON_TEST_UPLOADER,265,172,47,14
-    LTEXT           "Cache pin query",IDC_STATIC,15,195,55,8
-    EDITTEXT        IDC_EDIT_UPLOAD_ART_PIN_QUERY,74,192,186,14,ES_AUTOHSCROLL
-    PUSHBUTTON      "Help...",IDC_LINK_ART_UPLOADER_HELP,265,192,47,14
-    LTEXT           "Order: local artwork, MusicBrainz / Cover Art Archive, then TheAudioDB.",IDC_STATIC,15,211,278,9
+    PUSHBUTTON      "Test",IDC_BUTTON_TEST_CATBOX,265,136,47,14
+    CONTROL         "Upload to Imgur",IDC_CHECK_UPLOAD_IMGUR,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,155,143,10
+    LTEXT           "Client ID",IDC_STATIC,15,173,42,8
+    EDITTEXT        IDC_EDIT_IMGUR_CLIENT_ID,61,170,199,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "Test",IDC_BUTTON_TEST_IMGUR,265,170,47,14
+    LTEXT           "Cache pin query",IDC_STATIC,15,191,55,8
+    EDITTEXT        IDC_EDIT_LOCAL_ART_PIN_QUERY,74,188,186,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "Imgur API...",IDC_BUTTON_IMGUR_HELP,265,188,47,14
+    LTEXT           "Order: Catbox, Imgur, MusicBrainz / Cover Art Archive, then TheAudioDB.",IDC_STATIC,15,211,293,9
     LTEXT           "Discord needs an Application ID, not an API key.",IDC_STATIC,9,239,205,9
     PUSHBUTTON      "Provider requirements...",IDC_BUTTON_PROVIDER_REQUIREMENTS,214,235,106,14
 END
@@ -247,4 +249,3 @@ END
 #include "foo_discord_rich.rc2"
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED
-

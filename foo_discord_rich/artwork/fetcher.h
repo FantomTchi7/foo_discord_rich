@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include <artwork/local_artwork_uploader.h>
+
 #include <cstdint>
 #include <mutex>
 #include <optional>
@@ -16,7 +18,8 @@ class ArtworkFetcher
 public:
     enum class ProviderCache
     {
-        Uploader,
+        Catbox,
+        Imgur,
         TheAudioDb
     };
 
@@ -44,13 +47,14 @@ public:
         auto operator<=>( const MusicBrainzFetchRequest& other ) const = default;
     };
 
-    struct UploadRequest
+    struct LocalArtworkUploadRequest
     {
         qwr::u8string artPinId;
         metadb_handle_ptr handle;
-        qwr::u8string uploadCommand;
+        artwork::LocalArtworkHost host;
+        qwr::u8string imgurClientId;
 
-        auto operator<=>( const UploadRequest& other ) const = default;
+        auto operator<=>( const LocalArtworkUploadRequest& other ) const = default;
     };
 
     struct TheAudioDbFetchRequest
@@ -62,7 +66,7 @@ public:
         auto operator<=>( const TheAudioDbFetchRequest& other ) const = default;
     };
 
-    using FetchRequest = std::variant<MusicBrainzFetchRequest, UploadRequest, TheAudioDbFetchRequest>;
+    using FetchRequest = std::variant<MusicBrainzFetchRequest, LocalArtworkUploadRequest, TheAudioDbFetchRequest>;
 
 public:
     static ArtworkFetcher& Get();
@@ -116,7 +120,7 @@ private:
     void ThreadMain( std::stop_token token );
 
     FetchOutcome ProcessFetchRequest( const MusicBrainzFetchRequest& request );
-    FetchOutcome ProcessFetchRequest( const UploadRequest& request );
+    FetchOutcome ProcessFetchRequest( const LocalArtworkUploadRequest& request );
     FetchOutcome ProcessFetchRequest( const TheAudioDbFetchRequest& request, uint64_t requestGeneration, uint64_t cacheGeneration );
     void SupersedeCurrentRequestLocked();
     void SetWorkerFailure( qwr::u8string logMessage );

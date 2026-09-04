@@ -66,16 +66,13 @@
     <ClCompile Include="fb2k\callbacks\playback.cpp">
       <Filter>fb2k\callbacks</Filter>
     </ClCompile>
-    <ClCompile Include="utils\subprocess_executor.cpp">
-      <Filter>utils</Filter>
-    </ClCompile>
     <ClCompile Include="artwork\musicbrainz_fetcher.cpp">
       <Filter>artwork</Filter>
     </ClCompile>
     <ClCompile Include="artwork\theaudiodb_fetcher.cpp">
       <Filter>artwork</Filter>
     </ClCompile>
-    <ClCompile Include="artwork\uploader.cpp">
+    <ClCompile Include="artwork\local_artwork_uploader.cpp">
       <Filter>artwork</Filter>
     </ClCompile>
     <ClCompile Include="artwork\fetcher.cpp">
@@ -126,9 +123,6 @@
     <ClInclude Include="utils\credential_store.h">
       <Filter>utils</Filter>
     </ClInclude>
-    <ClInclude Include="utils\subprocess_executor.h">
-      <Filter>utils</Filter>
-    </ClInclude>
     <ClInclude Include="utils\validation.h">
       <Filter>utils</Filter>
     </ClInclude>
@@ -150,7 +144,7 @@
     <ClInclude Include="artwork\theaudiodb_fetcher.h">
       <Filter>artwork</Filter>
     </ClInclude>
-    <ClInclude Include="artwork\uploader.h">
+    <ClInclude Include="artwork\local_artwork_uploader.h">
       <Filter>artwork</Filter>
     </ClInclude>
     <ClInclude Include="artwork\fetcher.h">

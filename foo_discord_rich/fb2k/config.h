@@ -24,11 +24,12 @@ extern qwr::fb2k::ConfigUint8Enum<ImageSetting> largeImageSettings;
 extern qwr::fb2k::ConfigUint8Enum<ImageSetting> smallImageSettings;
 extern qwr::fb2k::ConfigUint8Enum<TimeSetting> timeSettings;
 extern qwr::fb2k::ConfigBool enableAlbumArtFetch;
-extern qwr::fb2k::ConfigBool enableArtUpload;
+extern qwr::fb2k::ConfigBool enableCatboxUpload;
+extern qwr::fb2k::ConfigBool enableImgurUpload;
 extern qwr::fb2k::ConfigBool enableTheAudioDbFetch;
 extern qwr::fb2k::ConfigUint8Enum<artwork::DisplayPolicy> artworkDisplayPolicy;
-extern qwr::fb2k::ConfigString artUploadCmd;
-extern qwr::fb2k::ConfigString artUploadPinQuery;
+extern qwr::fb2k::ConfigString imgurClientId;
+extern qwr::fb2k::ConfigString localArtworkPinQuery;
 
 extern qwr::fb2k::ConfigString topTextQuery;
 extern qwr::fb2k::ConfigString middleTextQuery;

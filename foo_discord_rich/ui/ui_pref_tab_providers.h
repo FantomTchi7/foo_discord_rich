@@ -1,6 +1,7 @@
 #pragma once
 
 #include <fb2k/config.h>
+#include <artwork/local_artwork_uploader.h>
 #include <ui/ui_itab.h>
 
 #include <resource.h>
@@ -44,11 +45,13 @@ public:
         COMMAND_HANDLER_EX( IDC_BUTTON_CLEAR_THEAUDIODB_KEY, BN_CLICKED, OnClearTheAudioDbKeyClick )
         COMMAND_HANDLER_EX( IDC_BUTTON_THEAUDIODB_HELP, BN_CLICKED, OnTheAudioDbHelpClick )
         COMMAND_HANDLER_EX( IDC_BUTTON_MUSICBRAINZ_HELP, BN_CLICKED, OnMusicBrainzHelpClick )
-        COMMAND_HANDLER_EX( IDC_CHECK_UPLOAD_ART, BN_CLICKED, OnDdxUiChange )
-        COMMAND_HANDLER_EX( IDC_EDIT_UPLOAD_COMMAND, EN_CHANGE, OnDdxUiChange )
-        COMMAND_HANDLER_EX( IDC_EDIT_UPLOAD_ART_PIN_QUERY, EN_CHANGE, OnDdxUiChange )
-        COMMAND_HANDLER_EX( IDC_BUTTON_TEST_UPLOADER, BN_CLICKED, OnTestUploaderClick )
-        COMMAND_HANDLER_EX( IDC_LINK_ART_UPLOADER_HELP, BN_CLICKED, OnUploaderHelpClick )
+        COMMAND_HANDLER_EX( IDC_CHECK_UPLOAD_CATBOX, BN_CLICKED, OnDdxUiChange )
+        COMMAND_HANDLER_EX( IDC_CHECK_UPLOAD_IMGUR, BN_CLICKED, OnDdxUiChange )
+        COMMAND_HANDLER_EX( IDC_EDIT_IMGUR_CLIENT_ID, EN_CHANGE, OnDdxUiChange )
+        COMMAND_HANDLER_EX( IDC_EDIT_LOCAL_ART_PIN_QUERY, EN_CHANGE, OnDdxUiChange )
+        COMMAND_HANDLER_EX( IDC_BUTTON_TEST_CATBOX, BN_CLICKED, OnTestCatboxClick )
+        COMMAND_HANDLER_EX( IDC_BUTTON_TEST_IMGUR, BN_CLICKED, OnTestImgurClick )
+        COMMAND_HANDLER_EX( IDC_BUTTON_IMGUR_HELP, BN_CLICKED, OnImgurHelpClick )
         COMMAND_HANDLER_EX( IDC_BUTTON_PROVIDER_REQUIREMENTS, BN_CLICKED, OnRequirementsClick )
         MESSAGE_HANDLER( kTheAudioDbTestFinishedMessage, OnTheAudioDbTestFinished )
     END_MSG_MAP()
@@ -82,8 +85,9 @@ private:
     void OnClearTheAudioDbKeyClick( UINT uNotifyCode, int nID, CWindow wndCtl );
     void OnTheAudioDbHelpClick( UINT uNotifyCode, int nID, CWindow wndCtl );
     void OnMusicBrainzHelpClick( UINT uNotifyCode, int nID, CWindow wndCtl );
-    void OnTestUploaderClick( UINT uNotifyCode, int nID, CWindow wndCtl );
-    void OnUploaderHelpClick( UINT uNotifyCode, int nID, CWindow wndCtl );
+    void OnTestCatboxClick( UINT uNotifyCode, int nID, CWindow wndCtl );
+    void OnTestImgurClick( UINT uNotifyCode, int nID, CWindow wndCtl );
+    void OnImgurHelpClick( UINT uNotifyCode, int nID, CWindow wndCtl );
     void OnRequirementsClick( UINT uNotifyCode, int nID, CWindow wndCtl );
     LRESULT OnTheAudioDbTestFinished( UINT message, WPARAM wParam, LPARAM lParam, BOOL& wasHandled );
     void OnChanged();
@@ -93,6 +97,7 @@ private:
     void ClearPendingTheAudioDbApiKey();
     void CancelPendingTheAudioDbCredentialChange();
     void UpdateTheAudioDbCredentialUi();
+    void TestLocalArtworkUpload( artwork::LocalArtworkHost host, qwr::u8string_view imgurClientId );
 
 private:
     PreferenceTabManager* pParent_ = nullptr;
@@ -105,14 +110,15 @@ private:
 
     SPTF_DEFINE_UI_OPTIONS( enableAlbumArtFetch,
                             enableTheAudioDbFetch,
-                            enableArtUpload,
-                            artUploadCmd,
-                            artUploadPinQuery )
+                            enableCatboxUpload,
+                            enableImgurUpload,
+                            imgurClientId,
+                            localArtworkPinQuery )
 
 #undef SPTF_DEFINE_UI_OPTIONS
 #undef SPTF_DEFINE_UI_OPTION
 
-    std::array<std::unique_ptr<qwr::ui::IUiDdxOption>, 5> ddxOptions_;
+    std::array<std::unique_ptr<qwr::ui::IUiDdxOption>, 6> ddxOptions_;
 
     qwr::u8string pendingTheAudioDbApiKey_;
     bool hasStoredTheAudioDbApiKey_ = false;

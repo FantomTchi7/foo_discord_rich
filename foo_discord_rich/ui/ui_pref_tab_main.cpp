@@ -202,7 +202,8 @@ void PreferenceTabMain::UpdateArtworkStatus()
     {
         message = "Artwork disabled by the selected behaviour.";
     }
-    else if ( !static_cast<bool>( config::enableArtUpload )
+    else if ( !static_cast<bool>( config::enableCatboxUpload )
+              && !static_cast<bool>( config::enableImgurUpload )
               && !static_cast<bool>( config::enableAlbumArtFetch )
               && !static_cast<bool>( config::enableTheAudioDbFetch ) )
     {

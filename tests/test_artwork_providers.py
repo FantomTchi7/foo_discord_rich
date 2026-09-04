@@ -13,6 +13,8 @@ class ArtworkProviderIntegrationTests(unittest.TestCase):
         for relative_path in (
             r"artwork\theaudiodb_fetcher.cpp",
             r"artwork\theaudiodb_fetcher.h",
+            r"artwork\local_artwork_uploader.cpp",
+            r"artwork\local_artwork_uploader.h",
             r"ui\ui_pref_tab_providers.cpp",
             r"ui\ui_pref_tab_providers.h",
             r"utils\theaudiodb.h",
@@ -29,9 +31,10 @@ class ArtworkProviderIntegrationTests(unittest.TestCase):
         for config_name in (
             "enableAlbumArtFetch",
             "enableTheAudioDbFetch",
-            "enableArtUpload",
-            "artUploadCmd",
-            "artUploadPinQuery",
+            "enableCatboxUpload",
+            "enableImgurUpload",
+            "imgurClientId",
+            "localArtworkPinQuery",
         ):
             self.assertEqual(
                 ui_sources.count(f"_( config::{config_name} )"),

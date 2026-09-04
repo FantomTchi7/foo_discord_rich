@@ -28,12 +28,4 @@ qwr::fb2k::AdvConfigBool_MT logWebResponses(
     "Log web responses",
     drp::guid::adv_var_log_web_responses, drp::guid::adv_branch_log, 2, false );
 
-qwr::fb2k::AdvConfigBool_MT logUploaderCmds(
-    "Log uploader commands",
-    drp::guid::adv_var_log_uploader_cmd, drp::guid::adv_branch_log, 3, false );
-
-qwr::fb2k::AdvConfigBool_MT logUploaderOutput(
-    "Log uploader returned urls",
-    drp::guid::adv_var_log_uploader_output, drp::guid::adv_branch_log, 4, false );
-
 } // namespace drp::config::advanced

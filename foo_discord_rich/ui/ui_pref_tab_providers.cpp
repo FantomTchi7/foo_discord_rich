@@ -4,7 +4,7 @@
 
 #include <artwork/fetcher.h>
 #include <artwork/theaudiodb_fetcher.h>
-#include <artwork/uploader.h>
+#include <artwork/local_artwork_uploader.h>
 #include <ui/ui_pref_tab_manager.h>
 #include <utils/credential_store.h>
 #include <utils/validation.h>
@@ -38,15 +38,17 @@ PreferenceTabProviders::PreferenceTabProviders( PreferenceTabManager* pParent )
     : pParent_( pParent )
     , enableAlbumArtFetch_( config::enableAlbumArtFetch )
     , enableTheAudioDbFetch_( config::enableTheAudioDbFetch )
-    , enableArtUpload_( config::enableArtUpload )
-    , artUploadCmd_( config::artUploadCmd )
-    , artUploadPinQuery_( config::artUploadPinQuery )
+    , enableCatboxUpload_( config::enableCatboxUpload )
+    , enableImgurUpload_( config::enableImgurUpload )
+    , imgurClientId_( config::imgurClientId )
+    , localArtworkPinQuery_( config::localArtworkPinQuery )
     , ddxOptions_( {
           qwr::ui::CreateUiDdxOption<qwr::ui::UiDdx_CheckBox>( enableAlbumArtFetch_, IDC_CHECK_FETCH_ALBUM_ART ),
           qwr::ui::CreateUiDdxOption<qwr::ui::UiDdx_CheckBox>( enableTheAudioDbFetch_, IDC_CHECK_FETCH_THEAUDIODB ),
-          qwr::ui::CreateUiDdxOption<qwr::ui::UiDdx_CheckBox>( enableArtUpload_, IDC_CHECK_UPLOAD_ART ),
-          qwr::ui::CreateUiDdxOption<qwr::ui::UiDdx_TextEdit>( artUploadCmd_, IDC_EDIT_UPLOAD_COMMAND ),
-          qwr::ui::CreateUiDdxOption<qwr::ui::UiDdx_TextEdit>( artUploadPinQuery_, IDC_EDIT_UPLOAD_ART_PIN_QUERY ),
+          qwr::ui::CreateUiDdxOption<qwr::ui::UiDdx_CheckBox>( enableCatboxUpload_, IDC_CHECK_UPLOAD_CATBOX ),
+          qwr::ui::CreateUiDdxOption<qwr::ui::UiDdx_CheckBox>( enableImgurUpload_, IDC_CHECK_UPLOAD_IMGUR ),
+          qwr::ui::CreateUiDdxOption<qwr::ui::UiDdx_TextEdit>( imgurClientId_, IDC_EDIT_IMGUR_CLIENT_ID ),
+          qwr::ui::CreateUiDdxOption<qwr::ui::UiDdx_TextEdit>( localArtworkPinQuery_, IDC_EDIT_LOCAL_ART_PIN_QUERY ),
       } )
 {
 }
@@ -98,7 +100,6 @@ void PreferenceTabProviders::Apply()
     const bool theAudioDbEnableRequested = enableTheAudioDbFetch_.HasChanged()
                                            && enableTheAudioDbFetch_.GetCurrentValue();
     const bool theAudioDbCredentialNeedsValidation = theAudioDbKeyChanged || theAudioDbEnableRequested;
-    const bool uploaderCommandChanged = artUploadCmd_.HasChanged();
     std::optional<qwr::u8string> apiKey;
     if ( theAudioDbCredentialNeedsValidation )
     {
@@ -112,14 +113,13 @@ void PreferenceTabProviders::Apply()
             return;
         }
     }
-    const auto uploaderCommand = artUploadCmd_.GetCurrentValue();
-    const auto uploaderPinQuery = artUploadPinQuery_.GetCurrentValue();
     const bool theAudioDbSettingsInvalid = ( theAudioDbKeyDeletionRequested && enableTheAudioDbFetch_.GetCurrentValue() )
                                            || ( theAudioDbCredentialNeedsValidation
                                                 && ( ( enableTheAudioDbFetch_.GetCurrentValue() && !apiKey )
                                                      || ( apiKey && !artwork::IsEligibleTheAudioDbSupporterKey( *apiKey ) ) ) );
-    const bool uploaderSettingsInvalid = enableArtUpload_.GetCurrentValue()
-                                         && ( uploaderCommand.empty() || uploaderPinQuery.empty() );
+    const bool localArtworkSettingsInvalid = ( enableCatboxUpload_.GetCurrentValue() || enableImgurUpload_.GetCurrentValue() )
+                                             && localArtworkPinQuery_.GetCurrentValue().empty();
+    const bool imgurSettingsInvalid = enableImgurUpload_.GetCurrentValue() && imgurClientId_.GetCurrentValue().empty();
     if ( theAudioDbSettingsInvalid )
     {
         popup_message::g_show(
@@ -128,14 +128,17 @@ void PreferenceTabProviders::Apply()
         enableTheAudioDbFetch_.Revert();
         CancelPendingTheAudioDbCredentialChange();
     }
-    if ( uploaderSettingsInvalid )
+    if ( localArtworkSettingsInvalid || imgurSettingsInvalid )
     {
         popup_message::g_show(
-            "Local artwork uploader settings were not saved. Enabling this provider requires both an upload command and a cache pin query.",
-            "Local artwork uploader" );
-        enableArtUpload_.Revert();
-        artUploadCmd_.Revert();
-        artUploadPinQuery_.Revert();
+            localArtworkSettingsInvalid
+                ? "Local artwork uploads require a cache pin query."
+                : "Imgur uploads require your Imgur application Client ID.",
+            "Local artwork uploads" );
+        enableCatboxUpload_.Revert();
+        enableImgurUpload_.Revert();
+        imgurClientId_.Revert();
+        localArtworkPinQuery_.Revert();
     }
 
     if ( theAudioDbKeyChanged && !theAudioDbSettingsInvalid )
@@ -178,12 +181,18 @@ void PreferenceTabProviders::Apply()
     {
         ArtworkFetcher::Get().InvalidateProviderCache( ArtworkFetcher::ProviderCache::TheAudioDb );
     }
-    if ( uploaderCommandChanged && !uploaderSettingsInvalid )
+    const bool catboxSettingsChanged = enableCatboxUpload_.HasChanged() || localArtworkPinQuery_.HasChanged();
+    const bool imgurSettingsChanged = enableImgurUpload_.HasChanged() || imgurClientId_.HasChanged() || localArtworkPinQuery_.HasChanged();
+    if ( catboxSettingsChanged && !localArtworkSettingsInvalid )
     {
-        ArtworkFetcher::Get().InvalidateProviderCache( ArtworkFetcher::ProviderCache::Uploader );
+        ArtworkFetcher::Get().InvalidateProviderCache( ArtworkFetcher::ProviderCache::Catbox );
+    }
+    if ( imgurSettingsChanged && !localArtworkSettingsInvalid && !imgurSettingsInvalid )
+    {
+        ArtworkFetcher::Get().InvalidateProviderCache( ArtworkFetcher::ProviderCache::Imgur );
     }
 
-    if ( theAudioDbSettingsInvalid || uploaderSettingsInvalid )
+    if ( theAudioDbSettingsInvalid || localArtworkSettingsInvalid || imgurSettingsInvalid )
     {
         DoFullDdxToUi();
         UpdateControlState();
@@ -278,7 +287,7 @@ void PreferenceTabProviders::OnDdxUiChange( UINT uNotifyCode, int nID, CWindow w
         ( *it )->Ddx().ReadFromUi();
     }
 
-    if ( nID == IDC_CHECK_FETCH_THEAUDIODB || nID == IDC_CHECK_UPLOAD_ART )
+    if ( nID == IDC_CHECK_FETCH_THEAUDIODB || nID == IDC_CHECK_UPLOAD_CATBOX || nID == IDC_CHECK_UPLOAD_IMGUR )
     {
         UpdateControlState();
     }
@@ -426,40 +435,46 @@ void PreferenceTabProviders::OnMusicBrainzHelpClick( UINT uNotifyCode, int nID, 
     ShellExecute( nullptr, L"open", L"https://musicbrainz.org/doc/Cover_Art_Archive/API", nullptr, nullptr, SW_SHOW );
 }
 
-void PreferenceTabProviders::OnTestUploaderClick( UINT uNotifyCode, int nID, CWindow wndCtl )
+void PreferenceTabProviders::OnTestCatboxClick( UINT uNotifyCode, int nID, CWindow wndCtl )
 {
-    const auto command = artUploadCmd_.GetCurrentValue();
-    if ( command.empty() )
+    TestLocalArtworkUpload( artwork::LocalArtworkHost::Catbox, {} );
+}
+
+void PreferenceTabProviders::OnTestImgurClick( UINT uNotifyCode, int nID, CWindow wndCtl )
+{
+    const auto clientId = imgurClientId_.GetCurrentValue();
+    if ( clientId.empty() )
     {
-        popup_message::g_show( "Enter an upload command first.", "Local artwork uploader test" );
+        popup_message::g_show( "Enter your Imgur application Client ID first.", "Imgur upload test" );
         return;
     }
+    TestLocalArtworkUpload( artwork::LocalArtworkHost::Imgur, clientId );
+}
 
+void PreferenceTabProviders::TestLocalArtworkUpload( artwork::LocalArtworkHost host, qwr::u8string_view imgurClientId )
+{
     metadb_handle_ptr handle;
     if ( !playback_control::get()->get_now_playing( handle ) )
     {
-        popup_message::g_show( "Start playing a track before testing the uploader.", "Local artwork uploader test" );
+        popup_message::g_show( "Start playing a track before testing local artwork upload.", "Local artwork upload test" );
         return;
     }
 
+    const auto hostName = host == artwork::LocalArtworkHost::Catbox ? "Catbox" : "Imgur";
     auto message = std::make_shared<qwr::u8string>();
     const auto callback = threaded_process_callback_lambda::create(
         {},
-        [handle, command, message]( threaded_process_status&, abort_callback& aborter ) {
+        [handle, host, imgurClientId = qwr::u8string{ imgurClientId }, hostName, message]( threaded_process_status&, abort_callback& aborter ) {
             try
             {
-                const auto result = UploadArt( handle, command, aborter );
+                const auto result = artwork::UploadLocalArtwork( handle, host, imgurClientId, aborter );
                 if ( !result )
                 {
                     *message = "No local or embedded front-cover artwork was available for the current track.";
                 }
-                else if ( !validation::IsSecureImageUrl( *result ) )
-                {
-                    *message = "Uploader output was not a valid HTTPS image URL.";
-                }
                 else
                 {
-                    *message = fmt::format( "Uploader succeeded.\n\n{}", *result );
+                    *message = fmt::format( "{} upload succeeded.\n\n{}", hostName, *result );
                 }
             }
             catch ( const exception_aborted& )
@@ -468,24 +483,25 @@ void PreferenceTabProviders::OnTestUploaderClick( UINT uNotifyCode, int nID, CWi
             }
             catch ( const std::exception& e )
             {
-                *message = fmt::format( "Uploader failed.\n\n{}", e.what() );
+                *message = fmt::format( "{} upload failed.\n\n{}", hostName, e.what() );
             }
         },
         [message]( fb2k::hwnd_t, bool wasAborted ) {
             popup_message::g_show(
-                wasAborted ? "Uploader test was cancelled." : message->c_str(),
-                "Local artwork uploader test" );
+                wasAborted ? "Local artwork upload test was cancelled." : message->c_str(),
+                "Local artwork upload test" );
         } );
+    const auto title = fmt::format( "Testing {} upload", hostName );
     threaded_process::g_run_modeless(
         callback,
         threaded_process::flag_show_delayed,
         m_hWnd,
-        "Testing local artwork uploader" );
+        title.c_str() );
 }
 
-void PreferenceTabProviders::OnUploaderHelpClick( UINT uNotifyCode, int nID, CWindow wndCtl )
+void PreferenceTabProviders::OnImgurHelpClick( UINT uNotifyCode, int nID, CWindow wndCtl )
 {
-    ShellExecute( nullptr, L"open", L"" DRP_HOMEPAGE "/blob/master/docs/CONFIGURATION.md#local-and-embedded-artwork", nullptr, nullptr, SW_SHOW );
+    ShellExecute( nullptr, L"open", L"https://api.imgur.com/", nullptr, nullptr, SW_SHOW );
 }
 
 void PreferenceTabProviders::OnRequirementsClick( UINT uNotifyCode, int nID, CWindow wndCtl )
@@ -494,7 +510,7 @@ void PreferenceTabProviders::OnRequirementsClick( UINT uNotifyCode, int nID, CWi
         "Discord: only a public Application ID is used. Never enter a bot token or client secret.\n\n"
         "MusicBrainz / Cover Art Archive: no account or key. A release MUSICBRAINZ_ALBUMID is used when available; otherwise artist and album metadata are required.\n\n"
         "TheAudioDB: requires your own supporter API key, available from TheAudioDB after upgrading. It is stored for the current Windows user in Credential Manager and is never redisplayed after saving.\n\n"
-        "Local artwork: Discord cannot read local files, so a trusted uploader command must return a public HTTPS image URL.\n\n"
+        "Catbox: can upload local artwork anonymously. Imgur: requires your own public application Client ID.\n\n"
         "Discogs is not offered because its image-transfer, caching and linked-attribution requirements cannot be met reliably inside a Discord activity card.",
         "Artwork provider requirements" );
 }
@@ -587,10 +603,13 @@ void PreferenceTabProviders::UpdateControlState()
     GetDlgItem( IDC_BUTTON_TEST_THEAUDIODB ).EnableWindow( enableTheAudioDbControls && hasEffectiveTheAudioDbApiKey && !isTheAudioDbTestRunning );
     GetDlgItem( IDC_BUTTON_CLEAR_THEAUDIODB_KEY ).EnableWindow( hasStoredTheAudioDbApiKey_ && !isTheAudioDbKeyDeletionPending_ && !isTheAudioDbTestRunning );
 
-    const bool enableUploaderControls = enableArtUpload_.GetCurrentValue();
-    GetDlgItem( IDC_EDIT_UPLOAD_COMMAND ).EnableWindow( enableUploaderControls );
-    GetDlgItem( IDC_EDIT_UPLOAD_ART_PIN_QUERY ).EnableWindow( enableUploaderControls );
-    GetDlgItem( IDC_BUTTON_TEST_UPLOADER ).EnableWindow( enableUploaderControls );
+    const bool enableLocalArtworkControls = enableCatboxUpload_.GetCurrentValue() || enableImgurUpload_.GetCurrentValue();
+    GetDlgItem( IDC_EDIT_LOCAL_ART_PIN_QUERY ).EnableWindow( enableLocalArtworkControls );
+    GetDlgItem( IDC_BUTTON_TEST_CATBOX ).EnableWindow( enableCatboxUpload_.GetCurrentValue() );
+    const bool enableImgurControls = enableImgurUpload_.GetCurrentValue();
+    GetDlgItem( IDC_EDIT_IMGUR_CLIENT_ID ).EnableWindow( enableImgurControls );
+    GetDlgItem( IDC_BUTTON_TEST_IMGUR ).EnableWindow( enableImgurControls );
+    GetDlgItem( IDC_BUTTON_IMGUR_HELP ).EnableWindow( enableImgurControls );
 }
 
 } // namespace drp::ui

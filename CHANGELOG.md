@@ -17,6 +17,9 @@ ___
 
 ## [Unreleased][]
 
+### Changed
+- Replaced external artwork uploader commands with native Catbox and Imgur uploads for local and embedded artwork.
+
 ## [2.0.3-ci303.7][] - 2026-08-23
 
 ### Added

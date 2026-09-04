@@ -20,11 +20,12 @@ qwr::fb2k::ConfigUint8Enum<ImageSetting> largeImageSettings( guid::conf_large_im
 qwr::fb2k::ConfigUint8Enum<ImageSetting> smallImageSettings( guid::conf_small_image_settings, ImageSetting::Light );
 qwr::fb2k::ConfigUint8Enum<TimeSetting> timeSettings( guid::conf_time_settings, TimeSetting::Disabled );
 qwr::fb2k::ConfigBool enableAlbumArtFetch( guid::conf_enable_album_art_fetch, true );
-qwr::fb2k::ConfigBool enableArtUpload( guid::conf_enable_art_upload, false );
+qwr::fb2k::ConfigBool enableCatboxUpload( guid::conf_enable_catbox_upload, false );
+qwr::fb2k::ConfigBool enableImgurUpload( guid::conf_enable_imgur_upload, false );
 qwr::fb2k::ConfigBool enableTheAudioDbFetch( guid::conf_enable_theaudiodb_fetch, false );
 qwr::fb2k::ConfigUint8Enum<artwork::DisplayPolicy> artworkDisplayPolicy( guid::conf_artwork_display_policy, artwork::DisplayPolicy::PreferArtwork );
-qwr::fb2k::ConfigString artUploadCmd( guid::conf_art_upload_cmd, "" );
-qwr::fb2k::ConfigString artUploadPinQuery( guid::conf_art_upload_pin_query, "%artist%|%album%" );
+qwr::fb2k::ConfigString imgurClientId( guid::conf_imgur_client_id, "" );
+qwr::fb2k::ConfigString localArtworkPinQuery( guid::conf_art_upload_pin_query, "%artist%|%album%" );
 
 qwr::fb2k::ConfigString topTextQuery( guid::conf_top_text_query, "[%title%]" );
 qwr::fb2k::ConfigString middleTextQuery( guid::conf_middle_text_query, "[by %album artist%]" );
