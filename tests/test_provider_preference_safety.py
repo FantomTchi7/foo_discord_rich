@@ -133,6 +133,7 @@ class ProviderPreferenceSafetyTests(unittest.TestCase):
         self.assertNotIn("cpr::File", uploader)
         self.assertIn("HttpVersionCode::VERSION_1_1", uploader)
         self.assertIn("Catbox upload did not receive a response", uploader)
+        self.assertIn("kRequestTimeout{ 120000 }", uploader)
 
     def test_native_upload_requirements_are_documented(self):
         documentation = (ROOT / "docs" / "CONFIGURATION.md").read_text(

@@ -9,7 +9,7 @@
 namespace
 {
 
-const cpr::Timeout kRequestTimeout{ 15000 };
+const cpr::Timeout kRequestTimeout{ 120000 };
 const cpr::ConnectTimeout kConnectTimeout{ 5000 };
 constexpr t_size kMaxArtworkUploadBytes = 20 * 1024 * 1024;
 const cpr::Header kRequestHeaders{

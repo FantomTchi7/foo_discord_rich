@@ -258,6 +258,8 @@ the current track before applying the setting. The shared cache pin query
 identifies when an upload can be reused; its default is `%artist%|%album%`.
 Artwork bytes are sent directly from foobar2000 to the selected host, avoiding
 temporary files and third-party uploader processes.
+Uploads remain cancellable and allow up to two minutes for a host to receive a
+large artwork file after the connection has been established.
 
 ### Provider requirements and exclusions
 
