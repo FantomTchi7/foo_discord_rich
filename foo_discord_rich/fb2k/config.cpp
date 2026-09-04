@@ -26,6 +26,8 @@ qwr::fb2k::ConfigBool enableTheAudioDbFetch( guid::conf_enable_theaudiodb_fetch,
 qwr::fb2k::ConfigUint8Enum<artwork::DisplayPolicy> artworkDisplayPolicy( guid::conf_artwork_display_policy, artwork::DisplayPolicy::PreferArtwork );
 qwr::fb2k::ConfigString imgurClientId( guid::conf_imgur_client_id, "" );
 qwr::fb2k::ConfigString localArtworkPinQuery( guid::conf_art_upload_pin_query, "%artist%|%album%" );
+qwr::fb2k::ConfigUint32 localArtworkUploadMaxWidth( guid::conf_local_artwork_upload_max_width, 250 );
+qwr::fb2k::ConfigUint32 localArtworkUploadMaxHeight( guid::conf_local_artwork_upload_max_height, 250 );
 
 qwr::fb2k::ConfigString topTextQuery( guid::conf_top_text_query, "[%title%]" );
 qwr::fb2k::ConfigString middleTextQuery( guid::conf_middle_text_query, "[by %album artist%]" );

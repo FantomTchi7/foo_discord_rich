@@ -87,7 +87,10 @@ std::optional<drp::ArtworkFetcher::LocalArtworkUploadRequest> CreateLocalArtwork
         .artPinId = EvaluateQueryForPlayingTrack( handle, config::localArtworkPinQuery ),
         .handle = handle,
         .host = host,
-        .imgurClientId = config::imgurClientId };
+        .imgurClientId = config::imgurClientId,
+        .options = {
+            .maxWidth = config::localArtworkUploadMaxWidth,
+            .maxHeight = config::localArtworkUploadMaxHeight } };
 }
 
 std::optional<drp::ArtworkFetcher::TheAudioDbFetchRequest> CreateTheAudioDbRequest( const metadb_handle_ptr& handle )

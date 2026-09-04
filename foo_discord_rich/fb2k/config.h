@@ -30,6 +30,8 @@ extern qwr::fb2k::ConfigBool enableTheAudioDbFetch;
 extern qwr::fb2k::ConfigUint8Enum<artwork::DisplayPolicy> artworkDisplayPolicy;
 extern qwr::fb2k::ConfigString imgurClientId;
 extern qwr::fb2k::ConfigString localArtworkPinQuery;
+extern qwr::fb2k::ConfigUint32 localArtworkUploadMaxWidth;
+extern qwr::fb2k::ConfigUint32 localArtworkUploadMaxHeight;
 
 extern qwr::fb2k::ConfigString topTextQuery;
 extern qwr::fb2k::ConfigString middleTextQuery;

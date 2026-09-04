@@ -10,3 +10,4 @@ The linked notices are provided for information only.
 - [PFC - zlib](licenses/PFC.txt)
 - [range-v3 - BSL-1.0](licenses/range-v3.txt)
 - [WTL - MS-PL](licenses/WTL.txt)
+- [libwebp - BSD-3-Clause](licenses/libwebp.txt)

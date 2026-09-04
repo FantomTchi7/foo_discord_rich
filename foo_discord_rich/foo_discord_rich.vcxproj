@@ -56,6 +56,7 @@
     <Import Project="$(QwrFb2kUtilsPropsDir)submodules\pfc.props" />
     <Import Project="$(QwrFb2kUtilsPropsDir)submodules\span.props" />
     <Import Project="$(QwrFb2kUtilsPropsDir)submodules\wtl.props" />
+    <Import Project="..\workspaces\packages\vii.libwebp.1.0.1\build\native\vii.libwebp.targets" Condition="Exists('..\workspaces\packages\vii.libwebp.1.0.1\build\native\vii.libwebp.targets')" />
     <Import Project="$(SolutionDir)\..\props\local_dependencies\cpr.props" />
     <Import Project="$(SolutionDir)\..\props\local_dependencies\discord.props" />
   </ImportGroup>
@@ -220,5 +221,6 @@
     <Error Condition="!Exists('..\workspaces\packages\Microsoft.SourceLink.Common.1.0.0\build\Microsoft.SourceLink.Common.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\workspaces\packages\Microsoft.SourceLink.Common.1.0.0\build\Microsoft.SourceLink.Common.targets'))" />
     <Error Condition="!Exists('..\workspaces\packages\Microsoft.SourceLink.GitHub.1.0.0\build\Microsoft.SourceLink.GitHub.props')" Text="$([System.String]::Format('$(ErrorText)', '..\workspaces\packages\Microsoft.SourceLink.GitHub.1.0.0\build\Microsoft.SourceLink.GitHub.props'))" />
     <Error Condition="!Exists('..\workspaces\packages\Microsoft.SourceLink.GitHub.1.0.0\build\Microsoft.SourceLink.GitHub.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\workspaces\packages\Microsoft.SourceLink.GitHub.1.0.0\build\Microsoft.SourceLink.GitHub.targets'))" />
+    <Error Condition="!Exists('..\workspaces\packages\vii.libwebp.1.0.1\build\native\vii.libwebp.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\workspaces\packages\vii.libwebp.1.0.1\build\native\vii.libwebp.targets'))" />
   </Target>
 </Project>

@@ -35,6 +35,8 @@ class ArtworkProviderIntegrationTests(unittest.TestCase):
             "enableImgurUpload",
             "imgurClientId",
             "localArtworkPinQuery",
+            "localArtworkUploadMaxWidth",
+            "localArtworkUploadMaxHeight",
         ):
             self.assertEqual(
                 ui_sources.count(f"_( config::{config_name} )"),

@@ -124,7 +124,7 @@ class ProviderPreferenceSafetyTests(unittest.TestCase):
             ROOT / "foo_discord_rich" / "artwork" / "local_artwork_uploader.cpp"
         ).read_text(encoding="utf-8")
 
-        self.assertIn("UploadLocalArtwork( handle, host, imgurClientId, aborter )", providers)
+        self.assertIn("UploadLocalArtwork( handle, host, imgurClientId, options, aborter )", providers)
         self.assertIn("https://catbox.moe/user/api.php", uploader)
         self.assertIn("https://api.imgur.com/3/image", uploader)
         self.assertIn("CreateAbortProgress( aborter )", uploader)
@@ -134,6 +134,24 @@ class ProviderPreferenceSafetyTests(unittest.TestCase):
         self.assertIn("HttpVersionCode::VERSION_1_1", uploader)
         self.assertIn("Catbox upload did not receive a response", uploader)
         self.assertIn("kRequestTimeout{ 120000 }", uploader)
+        self.assertIn("WebPEncodeBGRA", uploader)
+        self.assertIn("WICBitmapInterpolationModeFant", uploader)
+
+    def test_local_upload_dimensions_are_staged_and_invalidate_cached_uploads(self):
+        providers = (
+            ROOT / "foo_discord_rich" / "ui" / "ui_pref_tab_providers.cpp"
+        ).read_text(encoding="utf-8")
+        fetcher = (
+            ROOT / "foo_discord_rich" / "artwork" / "fetcher.cpp"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("localArtworkUploadMaxWidth_( config::localArtworkUploadMaxWidth )", providers)
+        self.assertIn("localArtworkUploadMaxHeight_( config::localArtworkUploadMaxHeight )", providers)
+        self.assertIn("UiDdx_TextEditNum", providers)
+        self.assertIn("localArtworkOutputChanged", providers)
+        self.assertIn("InvalidateProviderCache( ArtworkFetcher::ProviderCache::Catbox )", providers)
+        self.assertIn("InvalidateProviderCache( ArtworkFetcher::ProviderCache::Imgur )", providers)
+        self.assertIn("BuildCatboxCacheKey( req.artPinId, req.options.maxWidth, req.options.maxHeight )", fetcher)
 
     def test_native_upload_requirements_are_documented(self):
         documentation = (ROOT / "docs" / "CONFIGURATION.md").read_text(

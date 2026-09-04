@@ -8,7 +8,7 @@
 namespace drp::artwork
 {
 
-inline constexpr int kArtworkCacheFormatVersion = 5;
+inline constexpr int kArtworkCacheFormatVersion = 6;
 
 inline bool IsCanonicalMbid( std::string_view value )
 {
@@ -65,24 +65,28 @@ inline std::optional<std::string> BuildMusicBrainzCacheKey(
     return "mb:metadata:" + std::to_string( artist.size() ) + ":" + artist + ":" + std::to_string( album.size() ) + ":" + album;
 }
 
-inline std::optional<std::string> BuildLocalArtworkCacheKey( std::string_view provider, const std::string& artPinId )
+inline std::optional<std::string> BuildLocalArtworkCacheKey(
+    std::string_view provider,
+    const std::string& artPinId,
+    uint32_t maxWidth,
+    uint32_t maxHeight )
 {
-    if ( provider.empty() || artPinId.empty() )
+    if ( provider.empty() || artPinId.empty() || maxWidth == 0 || maxHeight == 0 )
     {
         return std::nullopt;
     }
 
-    return std::string{ provider } + ":" + artPinId;
+    return std::string{ provider } + ":webp:" + std::to_string( maxWidth ) + "x" + std::to_string( maxHeight ) + ":" + artPinId;
 }
 
-inline std::optional<std::string> BuildCatboxCacheKey( const std::string& artPinId )
+inline std::optional<std::string> BuildCatboxCacheKey( const std::string& artPinId, uint32_t maxWidth, uint32_t maxHeight )
 {
-    return BuildLocalArtworkCacheKey( "catbox", artPinId );
+    return BuildLocalArtworkCacheKey( "catbox", artPinId, maxWidth, maxHeight );
 }
 
-inline std::optional<std::string> BuildImgurCacheKey( const std::string& artPinId )
+inline std::optional<std::string> BuildImgurCacheKey( const std::string& artPinId, uint32_t maxWidth, uint32_t maxHeight )
 {
-    return BuildLocalArtworkCacheKey( "imgur", artPinId );
+    return BuildLocalArtworkCacheKey( "imgur", artPinId, maxWidth, maxHeight );
 }
 
 inline std::optional<std::string> BuildTheAudioDbCacheKey( const std::string& artist, const std::string& album )

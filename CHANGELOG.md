@@ -19,6 +19,7 @@ ___
 
 ### Changed
 - Replaced external artwork uploader commands with native Catbox and Imgur uploads for local and embedded artwork.
+- Converted local artwork uploads to WebP and added configurable maximum dimensions, defaulting to 250 x 250 pixels while preserving aspect ratio.
 
 ### Fixed
 - Send local artwork bytes directly to native upload hosts, avoiding failures

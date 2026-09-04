@@ -49,6 +49,8 @@ public:
         COMMAND_HANDLER_EX( IDC_CHECK_UPLOAD_IMGUR, BN_CLICKED, OnDdxUiChange )
         COMMAND_HANDLER_EX( IDC_EDIT_IMGUR_CLIENT_ID, EN_CHANGE, OnDdxUiChange )
         COMMAND_HANDLER_EX( IDC_EDIT_LOCAL_ART_PIN_QUERY, EN_CHANGE, OnDdxUiChange )
+        COMMAND_HANDLER_EX( IDC_EDIT_LOCAL_ART_MAX_WIDTH, EN_CHANGE, OnDdxUiChange )
+        COMMAND_HANDLER_EX( IDC_EDIT_LOCAL_ART_MAX_HEIGHT, EN_CHANGE, OnDdxUiChange )
         COMMAND_HANDLER_EX( IDC_BUTTON_TEST_CATBOX, BN_CLICKED, OnTestCatboxClick )
         COMMAND_HANDLER_EX( IDC_BUTTON_TEST_IMGUR, BN_CLICKED, OnTestImgurClick )
         COMMAND_HANDLER_EX( IDC_BUTTON_IMGUR_HELP, BN_CLICKED, OnImgurHelpClick )
@@ -113,12 +115,14 @@ private:
                             enableCatboxUpload,
                             enableImgurUpload,
                             imgurClientId,
-                            localArtworkPinQuery )
+                            localArtworkPinQuery,
+                            localArtworkUploadMaxWidth,
+                            localArtworkUploadMaxHeight )
 
 #undef SPTF_DEFINE_UI_OPTIONS
 #undef SPTF_DEFINE_UI_OPTION
 
-    std::array<std::unique_ptr<qwr::ui::IUiDdxOption>, 6> ddxOptions_;
+    std::array<std::unique_ptr<qwr::ui::IUiDdxOption>, 8> ddxOptions_;
 
     qwr::u8string pendingTheAudioDbApiKey_;
     bool hasStoredTheAudioDbApiKey_ = false;

@@ -57,6 +57,8 @@
 #define IDC_BUTTON_CLEAR_THEAUDIODB_KEY 1115
 #define IDC_CHECK_UPLOAD_IMGUR          1116
 #define IDC_BUTTON_TEST_IMGUR           1117
+#define IDC_EDIT_LOCAL_ART_MAX_WIDTH    1118
+#define IDC_EDIT_LOCAL_ART_MAX_HEIGHT   1119
 
 // Next default values for new objects
 //
@@ -64,7 +66,7 @@
 #    ifndef APSTUDIO_READONLY_SYMBOLS
 #        define _APS_NEXT_RESOURCE_VALUE 125
 #        define _APS_NEXT_COMMAND_VALUE  40012
-#        define _APS_NEXT_CONTROL_VALUE  1118
+#        define _APS_NEXT_CONTROL_VALUE  1120
 #        define _APS_NEXT_SYMED_VALUE    101
 #    endif
 #endif

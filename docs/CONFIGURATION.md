@@ -258,6 +258,9 @@ the current track before applying the setting. The shared cache pin query
 identifies when an upload can be reused; its default is `%artist%|%album%`.
 Artwork bytes are sent directly from foobar2000 to the selected host, avoiding
 temporary files and third-party uploader processes.
+Before upload, artwork is converted to WebP and proportionally downsized to fit
+the configured **Maximum size**. The default is **250 x 250 pixels**; smaller
+artwork is not enlarged, and rectangular covers retain their aspect ratio.
 Uploads remain cancellable and allow up to two minutes for a host to receive a
 large artwork file after the connection has been established.
 
@@ -282,9 +285,12 @@ paid API use. Artwork remains subject to the rights of its respective owner.
 ### Artwork cache
 
 Artwork is cached separately for Catbox, Imgur, MusicBrainz, and TheAudioDB so
-one provider's result cannot suppress another. Successful results are refreshed
+one provider's result cannot suppress another. The WebP maximum-size profile is
+also part of each local-upload cache key, so changing it does not reuse a URL
+for a differently sized image. Successful results are refreshed
 periodically, while clean no-match results expire sooner. Cache formats older
-than version 5 are deliberately ignored because their provider and release
+than version 6 are deliberately ignored because their provider, upload profile,
+and release
 identity is ambiguous; the component rebuilds them as tracks are played.
 
 Use **Advanced > Artwork cache > Reload from disk** to reload the current cache file, or use

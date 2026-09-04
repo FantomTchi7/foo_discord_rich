@@ -53,6 +53,7 @@ public:
         metadb_handle_ptr handle;
         artwork::LocalArtworkHost host;
         qwr::u8string imgurClientId;
+        artwork::LocalArtworkUploadOptions options;
 
         auto operator<=>( const LocalArtworkUploadRequest& other ) const = default;
     };

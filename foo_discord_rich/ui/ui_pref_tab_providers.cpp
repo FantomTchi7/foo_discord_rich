@@ -42,6 +42,8 @@ PreferenceTabProviders::PreferenceTabProviders( PreferenceTabManager* pParent )
     , enableImgurUpload_( config::enableImgurUpload )
     , imgurClientId_( config::imgurClientId )
     , localArtworkPinQuery_( config::localArtworkPinQuery )
+    , localArtworkUploadMaxWidth_( config::localArtworkUploadMaxWidth )
+    , localArtworkUploadMaxHeight_( config::localArtworkUploadMaxHeight )
     , ddxOptions_( {
           qwr::ui::CreateUiDdxOption<qwr::ui::UiDdx_CheckBox>( enableAlbumArtFetch_, IDC_CHECK_FETCH_ALBUM_ART ),
           qwr::ui::CreateUiDdxOption<qwr::ui::UiDdx_CheckBox>( enableTheAudioDbFetch_, IDC_CHECK_FETCH_THEAUDIODB ),
@@ -49,6 +51,8 @@ PreferenceTabProviders::PreferenceTabProviders( PreferenceTabManager* pParent )
           qwr::ui::CreateUiDdxOption<qwr::ui::UiDdx_CheckBox>( enableImgurUpload_, IDC_CHECK_UPLOAD_IMGUR ),
           qwr::ui::CreateUiDdxOption<qwr::ui::UiDdx_TextEdit>( imgurClientId_, IDC_EDIT_IMGUR_CLIENT_ID ),
           qwr::ui::CreateUiDdxOption<qwr::ui::UiDdx_TextEdit>( localArtworkPinQuery_, IDC_EDIT_LOCAL_ART_PIN_QUERY ),
+          qwr::ui::CreateUiDdxOption<qwr::ui::UiDdx_TextEditNum>( localArtworkUploadMaxWidth_, IDC_EDIT_LOCAL_ART_MAX_WIDTH ),
+          qwr::ui::CreateUiDdxOption<qwr::ui::UiDdx_TextEditNum>( localArtworkUploadMaxHeight_, IDC_EDIT_LOCAL_ART_MAX_HEIGHT ),
       } )
 {
 }
@@ -120,6 +124,11 @@ void PreferenceTabProviders::Apply()
     const bool localArtworkSettingsInvalid = ( enableCatboxUpload_.GetCurrentValue() || enableImgurUpload_.GetCurrentValue() )
                                              && localArtworkPinQuery_.GetCurrentValue().empty();
     const bool imgurSettingsInvalid = enableImgurUpload_.GetCurrentValue() && imgurClientId_.GetCurrentValue().empty();
+    const artwork::LocalArtworkUploadOptions localArtworkUploadOptions{
+        .maxWidth = localArtworkUploadMaxWidth_.GetCurrentValue(),
+        .maxHeight = localArtworkUploadMaxHeight_.GetCurrentValue() };
+    const bool localArtworkOutputInvalid = ( enableCatboxUpload_.GetCurrentValue() || enableImgurUpload_.GetCurrentValue() )
+                                           && !artwork::AreValidLocalArtworkUploadOptions( localArtworkUploadOptions );
     if ( theAudioDbSettingsInvalid )
     {
         popup_message::g_show(
@@ -128,17 +137,21 @@ void PreferenceTabProviders::Apply()
         enableTheAudioDbFetch_.Revert();
         CancelPendingTheAudioDbCredentialChange();
     }
-    if ( localArtworkSettingsInvalid || imgurSettingsInvalid )
+    if ( localArtworkSettingsInvalid || imgurSettingsInvalid || localArtworkOutputInvalid )
     {
         popup_message::g_show(
             localArtworkSettingsInvalid
                 ? "Local artwork uploads require a cache pin query."
-                : "Imgur uploads require your Imgur application Client ID.",
+                : imgurSettingsInvalid
+                    ? "Imgur uploads require your Imgur application Client ID."
+                    : "Local artwork upload dimensions must be between 1 and 4096 pixels.",
             "Local artwork uploads" );
         enableCatboxUpload_.Revert();
         enableImgurUpload_.Revert();
         imgurClientId_.Revert();
         localArtworkPinQuery_.Revert();
+        localArtworkUploadMaxWidth_.Revert();
+        localArtworkUploadMaxHeight_.Revert();
     }
 
     if ( theAudioDbKeyChanged && !theAudioDbSettingsInvalid )
@@ -172,27 +185,29 @@ void PreferenceTabProviders::Apply()
         }
     }
 
+    const bool localArtworkOutputChanged = localArtworkUploadMaxWidth_.HasChanged() || localArtworkUploadMaxHeight_.HasChanged();
+    const bool catboxSettingsChanged = enableCatboxUpload_.HasChanged() || localArtworkPinQuery_.HasChanged() || localArtworkOutputChanged;
+    const bool imgurSettingsChanged = enableImgurUpload_.HasChanged() || imgurClientId_.HasChanged() || localArtworkPinQuery_.HasChanged()
+                                     || localArtworkOutputChanged;
+    if ( ( theAudioDbKeyChanged || theAudioDbKeyDeletionRequested ) && !theAudioDbSettingsInvalid )
+    {
+        ArtworkFetcher::Get().InvalidateProviderCache( ArtworkFetcher::ProviderCache::TheAudioDb );
+    }
+    if ( catboxSettingsChanged && !localArtworkSettingsInvalid && !localArtworkOutputInvalid )
+    {
+        ArtworkFetcher::Get().InvalidateProviderCache( ArtworkFetcher::ProviderCache::Catbox );
+    }
+    if ( imgurSettingsChanged && !localArtworkSettingsInvalid && !imgurSettingsInvalid && !localArtworkOutputInvalid )
+    {
+        ArtworkFetcher::Get().InvalidateProviderCache( ArtworkFetcher::ProviderCache::Imgur );
+    }
+
     for ( auto& ddxOpt: ddxOptions_ )
     {
         ddxOpt->Option().Apply();
     }
 
-    if ( ( theAudioDbKeyChanged || theAudioDbKeyDeletionRequested ) && !theAudioDbSettingsInvalid )
-    {
-        ArtworkFetcher::Get().InvalidateProviderCache( ArtworkFetcher::ProviderCache::TheAudioDb );
-    }
-    const bool catboxSettingsChanged = enableCatboxUpload_.HasChanged() || localArtworkPinQuery_.HasChanged();
-    const bool imgurSettingsChanged = enableImgurUpload_.HasChanged() || imgurClientId_.HasChanged() || localArtworkPinQuery_.HasChanged();
-    if ( catboxSettingsChanged && !localArtworkSettingsInvalid )
-    {
-        ArtworkFetcher::Get().InvalidateProviderCache( ArtworkFetcher::ProviderCache::Catbox );
-    }
-    if ( imgurSettingsChanged && !localArtworkSettingsInvalid && !imgurSettingsInvalid )
-    {
-        ArtworkFetcher::Get().InvalidateProviderCache( ArtworkFetcher::ProviderCache::Imgur );
-    }
-
-    if ( theAudioDbSettingsInvalid || localArtworkSettingsInvalid || imgurSettingsInvalid )
+    if ( theAudioDbSettingsInvalid || localArtworkSettingsInvalid || imgurSettingsInvalid || localArtworkOutputInvalid )
     {
         DoFullDdxToUi();
         UpdateControlState();
@@ -238,6 +253,8 @@ BOOL PreferenceTabProviders::OnInitDialog( HWND hwndFocus, LPARAM lParam )
     }
     auto apiKeyEdit = CEdit( GetDlgItem( IDC_EDIT_THEAUDIODB_API_KEY ) );
     apiKeyEdit.LimitText( 128 );
+    CEdit( GetDlgItem( IDC_EDIT_LOCAL_ART_MAX_WIDTH ) ).LimitText( 4 );
+    CEdit( GetDlgItem( IDC_EDIT_LOCAL_ART_MAX_HEIGHT ) ).LimitText( 4 );
     apiKeyEdit.SetPasswordChar( L'\x25CF' );
     CButton( GetDlgItem( IDC_CHECK_SHOW_THEAUDIODB_KEY ) ).SetCheck( BST_UNCHECKED );
     if ( !pendingTheAudioDbApiKey_.empty() )
@@ -461,13 +478,21 @@ void PreferenceTabProviders::TestLocalArtworkUpload( artwork::LocalArtworkHost h
     }
 
     const auto hostName = host == artwork::LocalArtworkHost::Catbox ? "Catbox" : "Imgur";
+    const artwork::LocalArtworkUploadOptions options{
+        .maxWidth = localArtworkUploadMaxWidth_.GetCurrentValue(),
+        .maxHeight = localArtworkUploadMaxHeight_.GetCurrentValue() };
+    if ( !artwork::AreValidLocalArtworkUploadOptions( options ) )
+    {
+        popup_message::g_show( "Enter upload dimensions between 1 and 4096 pixels first.", "Local artwork upload test" );
+        return;
+    }
     auto message = std::make_shared<qwr::u8string>();
     const auto callback = threaded_process_callback_lambda::create(
         {},
-        [handle, host, imgurClientId = qwr::u8string{ imgurClientId }, hostName, message]( threaded_process_status&, abort_callback& aborter ) {
+        [handle, host, imgurClientId = qwr::u8string{ imgurClientId }, options, hostName, message]( threaded_process_status&, abort_callback& aborter ) {
             try
             {
-                const auto result = artwork::UploadLocalArtwork( handle, host, imgurClientId, aborter );
+                const auto result = artwork::UploadLocalArtwork( handle, host, imgurClientId, options, aborter );
                 if ( !result )
                 {
                     *message = "No local or embedded front-cover artwork was available for the current track.";
@@ -605,6 +630,8 @@ void PreferenceTabProviders::UpdateControlState()
 
     const bool enableLocalArtworkControls = enableCatboxUpload_.GetCurrentValue() || enableImgurUpload_.GetCurrentValue();
     GetDlgItem( IDC_EDIT_LOCAL_ART_PIN_QUERY ).EnableWindow( enableLocalArtworkControls );
+    GetDlgItem( IDC_EDIT_LOCAL_ART_MAX_WIDTH ).EnableWindow( enableLocalArtworkControls );
+    GetDlgItem( IDC_EDIT_LOCAL_ART_MAX_HEIGHT ).EnableWindow( enableLocalArtworkControls );
     GetDlgItem( IDC_BUTTON_TEST_CATBOX ).EnableWindow( enableCatboxUpload_.GetCurrentValue() );
     const bool enableImgurControls = enableImgurUpload_.GetCurrentValue();
     GetDlgItem( IDC_EDIT_IMGUR_CLIENT_ID ).EnableWindow( enableImgurControls );

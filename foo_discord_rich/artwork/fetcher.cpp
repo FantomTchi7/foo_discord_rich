@@ -48,8 +48,8 @@ std::optional<qwr::u8string> GenerateCacheKey( const drp::ArtworkFetcher::FetchR
             },
             []( const drp::ArtworkFetcher::LocalArtworkUploadRequest& req ) {
                 return req.host == drp::artwork::LocalArtworkHost::Catbox
-                           ? drp::artwork::BuildCatboxCacheKey( req.artPinId )
-                           : drp::artwork::BuildImgurCacheKey( req.artPinId );
+                           ? drp::artwork::BuildCatboxCacheKey( req.artPinId, req.options.maxWidth, req.options.maxHeight )
+                           : drp::artwork::BuildImgurCacheKey( req.artPinId, req.options.maxWidth, req.options.maxHeight );
             },
             []( const drp::ArtworkFetcher::TheAudioDbFetchRequest& req ) {
                 return drp::artwork::BuildTheAudioDbCacheKey( req.artist, req.album );
@@ -82,7 +82,8 @@ bool IsRequestExecutable( const drp::ArtworkFetcher::FetchRequest& request )
                 return true;
             },
             []( const drp::ArtworkFetcher::LocalArtworkUploadRequest& req ) {
-                return req.host == drp::artwork::LocalArtworkHost::Catbox || !req.imgurClientId.empty();
+                return drp::artwork::AreValidLocalArtworkUploadOptions( req.options )
+                       && ( req.host == drp::artwork::LocalArtworkHost::Catbox || !req.imgurClientId.empty() );
             },
             []( const drp::ArtworkFetcher::TheAudioDbFetchRequest& req ) {
                 return drp::artwork::IsEligibleTheAudioDbSupporterKey( req.apiKey );
@@ -515,6 +516,7 @@ void ArtworkFetcher::ClearCache()
         fs::remove( drp::path::ImageDir() / "art_urls.v2.0.1.json" );
         fs::remove( drp::path::ImageDir() / "art_urls.v3.json" );
         fs::remove( drp::path::ImageDir() / "art_urls.v4.json" );
+        fs::remove( drp::path::ImageDir() / "art_urls.v5.json" );
         fs::remove( GetCacheFilePath() );
     }
     catch ( const fs::filesystem_error& e )
@@ -561,7 +563,7 @@ void ArtworkFetcher::InvalidateProviderCache( ProviderCache provider )
 
 std::filesystem::path ArtworkFetcher::GetCacheFilePath()
 {
-    static const auto cachePath = drp::path::ImageDir() / "art_urls.v5.json";
+    static const auto cachePath = drp::path::ImageDir() / "art_urls.v6.json";
     return cachePath;
 }
 
@@ -773,6 +775,7 @@ ArtworkFetcher::FetchOutcome ArtworkFetcher::ProcessFetchRequest( const LocalArt
                      request.handle,
                      request.host,
                      request.imgurClientId,
+                     request.options,
                      qwr::GlobalAbortCallback::GetInstance() ),
             true };
     }

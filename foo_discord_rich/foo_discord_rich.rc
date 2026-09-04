@@ -128,7 +128,7 @@ BEGIN
     LTEXT           "Changing provider settings re-evaluates the current track after Apply.",IDC_STATIC,12,246,297,9
 END
 
-IDD_PREFS_PROVIDERS_TAB DIALOGEX 0, 0, 327, 268
+IDD_PREFS_PROVIDERS_TAB DIALOGEX 0, 0, 327, 284
 STYLE DS_SETFONT | DS_CONTROL | WS_CHILD | WS_SYSMENU
 FONT 8, "Tahoma", 400, 0, 0x0
 BEGIN
@@ -146,7 +146,7 @@ BEGIN
     PUSHBUTTON      "Test",IDC_BUTTON_TEST_THEAUDIODB,166,96,30,14
     PUSHBUTTON      "Clear",IDC_BUTTON_CLEAR_THEAUDIODB_KEY,200,96,34,14
     PUSHBUTTON      "Get key...",IDC_BUTTON_THEAUDIODB_HELP,239,96,47,14
-    GROUPBOX        "Local and embedded artwork",IDC_STATIC,6,126,314,101
+    GROUPBOX        "Local and embedded artwork",IDC_STATIC,6,126,314,117
     CONTROL         "Upload to Catbox (anonymous)",IDC_CHECK_UPLOAD_CATBOX,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,139,143,10
     PUSHBUTTON      "Test",IDC_BUTTON_TEST_CATBOX,265,136,47,14
@@ -158,9 +158,14 @@ BEGIN
     LTEXT           "Cache pin query",IDC_STATIC,15,191,55,8
     EDITTEXT        IDC_EDIT_LOCAL_ART_PIN_QUERY,74,188,186,14,ES_AUTOHSCROLL
     PUSHBUTTON      "Imgur API...",IDC_BUTTON_IMGUR_HELP,265,188,47,14
-    LTEXT           "Order: Catbox, Imgur, MusicBrainz / Cover Art Archive, then TheAudioDB.",IDC_STATIC,15,211,293,9
-    LTEXT           "Discord needs an Application ID, not an API key.",IDC_STATIC,9,239,205,9
-    PUSHBUTTON      "Provider requirements...",IDC_BUTTON_PROVIDER_REQUIREMENTS,214,235,106,14
+    LTEXT           "Maximum size",IDC_STATIC,15,209,55,8
+    EDITTEXT        IDC_EDIT_LOCAL_ART_MAX_WIDTH,74,206,40,14,ES_AUTOHSCROLL | ES_NUMBER
+    LTEXT           "x",IDC_STATIC,119,209,8,8
+    EDITTEXT        IDC_EDIT_LOCAL_ART_MAX_HEIGHT,129,206,40,14,ES_AUTOHSCROLL | ES_NUMBER
+    LTEXT           "pixels (WebP)",IDC_STATIC,174,209,70,8
+    LTEXT           "Order: Catbox, Imgur, MusicBrainz / Cover Art Archive, then TheAudioDB.",IDC_STATIC,15,227,293,9
+    LTEXT           "Discord needs an Application ID, not an API key.",IDC_STATIC,9,255,205,9
+    PUSHBUTTON      "Provider requirements...",IDC_BUTTON_PROVIDER_REQUIREMENTS,214,251,106,14
 END
 
 IDD_PREFS_TROUBLESHOOTING_TAB DIALOGEX 0, 0, 327, 268
