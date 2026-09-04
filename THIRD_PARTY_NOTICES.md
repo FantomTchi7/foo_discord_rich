@@ -7,7 +7,7 @@ The linked notices are provided for information only.
 - [fmt - other](licenses/fmt.txt)
 - [foobar2000 SDK - other](licenses/foobar2000%20SDK.txt)
 - [JSON for Modern C++ - MIT](licenses/JSON%20for%20Modern%20C%2B%2B.txt)
+- [libwebp - BSD-3-Clause](licenses/libwebp.txt)
 - [PFC - zlib](licenses/PFC.txt)
 - [range-v3 - BSL-1.0](licenses/range-v3.txt)
 - [WTL - MS-PL](licenses/WTL.txt)
-- [libwebp - BSD-3-Clause](licenses/libwebp.txt)
