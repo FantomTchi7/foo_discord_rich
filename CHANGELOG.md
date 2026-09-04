@@ -20,6 +20,10 @@ ___
 ### Changed
 - Replaced external artwork uploader commands with native Catbox and Imgur uploads for local and embedded artwork.
 
+### Fixed
+- Send local artwork bytes directly to native upload hosts, avoiding failures
+  opening Unicode local paths through libcurl.
+
 ## [2.0.3-ci303.7][] - 2026-08-23
 
 ### Added

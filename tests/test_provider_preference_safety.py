@@ -129,6 +129,10 @@ class ProviderPreferenceSafetyTests(unittest.TestCase):
         self.assertIn("https://api.imgur.com/3/image", uploader)
         self.assertIn("CreateAbortProgress( aborter )", uploader)
         self.assertNotIn("SubprocessExecutor", uploader)
+        self.assertIn("cpr::Buffer image", uploader)
+        self.assertNotIn("cpr::File", uploader)
+        self.assertIn("HttpVersionCode::VERSION_1_1", uploader)
+        self.assertIn("Catbox upload did not receive a response", uploader)
 
     def test_native_upload_requirements_are_documented(self):
         documentation = (ROOT / "docs" / "CONFIGURATION.md").read_text(

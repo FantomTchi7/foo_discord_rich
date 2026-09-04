@@ -256,8 +256,8 @@ component needs a public HTTPS image URL.
 Enable either host on the **Providers** tab and use its **Test** action against
 the current track before applying the setting. The shared cache pin query
 identifies when an upload can be reused; its default is `%artist%|%album%`.
-Embedded artwork is copied to a unique temporary file and removed after the
-native upload completes or is cancelled.
+Artwork bytes are sent directly from foobar2000 to the selected host, avoiding
+temporary files and third-party uploader processes.
 
 ### Provider requirements and exclusions
 
